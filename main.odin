@@ -2,9 +2,14 @@ package main
 
 import "core:fmt"
 import mem "core:mem"
+import os "core:os"
+import slice "core:slice"
+import "core:strings"
 
 main :: proc() {
-	message := "hello world!"
+	fmt.println(os.args)
+	message := len(os.args) > 1 ? strings.join(os.args[1:], " ") : ("")
+	fmt.println("message:", message)
 
 	// append initial bits of the message
 	arr := make([dynamic]u8)
@@ -44,7 +49,7 @@ main :: proc() {
 				u32(chunk[i * 4 + 2]) << 8 |
 				u32(chunk[i * 4 + 3]) // i * 4 to convert u8 to u32
 		}
-		fmt.println("first 16 u32 in w: ", w)
+		fmt.println("first 16 u32 in w:", w)
 
 		// extend first 16 u32 into remaining 48 u32
 		for i in 16 ..< 64 {
@@ -82,7 +87,7 @@ main :: proc() {
 			b = a
 			a = temp1 + temp2
 		}
-		fmt.println("after compression: ", a, b, c, d, e, f, g, h)
+		fmt.println("after compression:", a, b, c, d, e, f, g, h)
 
 		// Adding compressed chunks to hash values
 		h0 += a
@@ -93,21 +98,19 @@ main :: proc() {
 		h5 += f
 		h6 += g
 		h7 += h
-		fmt.println("after adding compressed chunks: ", h0, h1, h2, h3, h4, h5, h6, h7)
+		fmt.println("after adding compressed chunks:", h0, h1, h2, h3, h4, h5, h6, h7)
 	}
 
-	hash := [32]u8{}
 	harr := []u32{h0, h1, h2, h3, h4, h5, h6, h7}
+	hash_word := make([]u32be, 8)
 	for val, i in harr {
-		hash[i * 4 + 0] = u8(val >> 24)
-		hash[i * 4 + 1] = u8(val >> 16)
-		hash[i * 4 + 2] = u8(val >> 8)
-		hash[i * 4 + 3] = u8(val)
+		hash_word[i] = u32be(val)
 	}
+	hash := slice.reinterpret([]u8, hash_word)
 
-	fmt.println("final hash: ", hash)
+	fmt.println("final hash:", hash)
 
-	fmt.print("final hash in hex: ")
+	fmt.print("final hash in hex:")
 	for val in hash {
 		fmt.printf("%02x", val)
 	}
