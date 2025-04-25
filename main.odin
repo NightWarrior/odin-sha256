@@ -5,11 +5,11 @@ import mem "core:mem"
 
 main :: proc() {
 	message := "hello world!"
-	tempArr := transmute([]u8)message
-	arr := make([dynamic]u8)
 
 	// append initial bits of the message
-	append(&arr, ..tempArr)
+	arr := make([dynamic]u8)
+	append(&arr, message)
+
 
 	// append single 1 bit
 	append(&arr, 0x80)
@@ -95,23 +95,23 @@ main :: proc() {
 		h7 += h
 		fmt.println("after adding compressed chunks: ", h0, h1, h2, h3, h4, h5, h6, h7)
 	}
-	hash := make([dynamic]u8)
-	harr := []u32{h0, h1, h2, h3, h4, h5, h6, h7}
-	for val in harr {
-		append(&hash, u8(val >> 24))
-		append(&hash, u8(val >> 16))
-		append(&hash, u8(val >> 8))
-		append(&hash, u8(val))
-	}
 
+	hash := [32]u8{}
+	harr := []u32{h0, h1, h2, h3, h4, h5, h6, h7}
+	for val, i in harr {
+		hash[i * 4 + 0] = u8(val >> 24)
+		hash[i * 4 + 1] = u8(val >> 16)
+		hash[i * 4 + 2] = u8(val >> 8)
+		hash[i * 4 + 3] = u8(val)
+	}
 
 	fmt.println("final hash: ", hash)
 
 	fmt.print("final hash in hex: ")
-  for val in hash {
-    fmt.printf("%02x",val)
-  }
-  fmt.println()
+	for val in hash {
+		fmt.printf("%02x", val)
+	}
+	fmt.println()
 }
 
 print :: proc(arr: [dynamic]u8) {
